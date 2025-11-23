@@ -1,0 +1,27 @@
+server:
+  port: 9000
+  servlet:
+    context-path: /
+    
+spring:
+  application:
+    name: dqadeagent-middle
+  
+  # 配置CORS
+  web:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      
+# 后端API配置
+backend:
+  base-url: http://localhost:8000
+  
+# 日志配置
+logging:
+  level:
+    com.dqadeagent.middle: INFO
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

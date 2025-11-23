@@ -1,0 +1,42 @@
+# 日志文件
+*.log
+*.pid
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Java
+target/
+*.class
+*.jar
+!middle/target/middle-1.0.0.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+

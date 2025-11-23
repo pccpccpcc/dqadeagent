@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+import logging
+from database import DatabaseManager
+
+logger = logging.getLogger(__name__)
+
+class DataService:
+    """数据服务类，处理所有数据相关的业务逻辑"""
+    
+    def __init__(self):
+        self.db_manager = DatabaseManager()
+    
+    def get_template_query_stats(self, queryDate: str) -> Dict[str, Any]:
+        """获取模板查询统计数据"""
+        try:
+            return self.db_manager.get_template_query_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取模板查询统计数据失败: {e}")
+            raise e
+    
+    def get_non_template_query_stats(self, queryDate: str) -> Dict[str, Any]:
+        """获取非模板查询统计数据"""
+        try:
+            return self.db_manager.get_non_template_query_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取非模板查询统计数据失败: {e}")
+            raise e
+    
+    def get_template_query_errors(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取模板查询错误统计"""
+        try:
+            return self.db_manager.get_template_query_errors(queryDate)
+        except Exception as e:
+            logger.error(f"获取模板查询错误统计失败: {e}")
+            raise e
+    
+    def get_non_template_query_errors(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取非模板查询错误统计"""
+        try:
+            return self.db_manager.get_non_template_query_errors(queryDate)
+        except Exception as e:
+            logger.error(f"获取非模板查询错误统计失败: {e}")
+            raise e
+    
+    def get_template_query_performance(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取模板查询性能统计"""
+        try:
+            return self.db_manager.get_template_query_performance(queryDate)
+        except Exception as e:
+            logger.error(f"获取模板查询性能统计失败: {e}")
+            raise e
+    
+    def get_non_template_query_performance(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取非模板查询性能统计"""
+        try:
+            return self.db_manager.get_non_template_query_performance(queryDate)
+        except Exception as e:
+            logger.error(f"获取非模板查询性能统计失败: {e}")
+            raise e
+    
+    def get_step_performance(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取各个环节的耗时统计"""
+        try:
+            return self.db_manager.get_step_performance(queryDate)
+        except Exception as e:
+            logger.error(f"获取步骤性能统计失败: {e}")
+            raise e
+    
+    def get_channel_stats(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取各个渠道的查询数量统计"""
+        try:
+            return self.db_manager.get_channel_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取渠道统计失败: {e}")
+            raise e
+    
+    def get_no_ticket_stats(self, queryDate: str) -> Dict[str, Any]:
+        """获取免提单数量统计"""
+        try:
+            return self.db_manager.get_no_ticket_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取免提单统计失败: {e}")
+            raise e
+    
+    def get_scenario_stats(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取各个场景的查询数量统计"""
+        try:
+            return self.db_manager.get_scenario_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取场景统计失败: {e}")
+            raise e
+    
+    def get_user_stats(self, queryDate: str) -> List[Dict[str, Any]]:
+        """获取使用人员统计"""
+        try:
+            return self.db_manager.get_user_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取用户统计失败: {e}")
+            raise e
+    
+    def get_performance_detail(self, biz_seq: str) -> Dict[str, Any]:
+        """获取性能详细分析"""
+        try:
+            return self.db_manager.get_performance_detail(biz_seq)
+        except Exception as e:
+            logger.error(f"获取性能详细分析失败: {e}")
+            raise e
+    
+    def get_date_range_query_trend(self, start_date: str = None, end_date: str = None) -> List[Dict[str, Any]]:
+        """获取指定日期范围的查询趋势"""
+        try:
+            return self.db_manager.get_date_range_query_trend(start_date, end_date)
+        except Exception as e:
+            logger.error(f"获取日期范围查询趋势失败: {e}")
+            raise e
+    
+    def get_date_range_step_trend(self, start_date: str = None, end_date: str = None) -> List[Dict[str, Any]]:
+        """获取指定日期范围的各环节耗时趋势"""
+        try:
+            return self.db_manager.get_date_range_step_trend(start_date, end_date)
+        except Exception as e:
+            logger.error(f"获取日期范围步骤趋势失败: {e}")
+            raise e
+    
+    def get_date_range_channel_trend(self, start_date: str = None, end_date: str = None) -> List[Dict[str, Any]]:
+        """获取指定日期范围的各渠道查询趋势"""
+        try:
+            return self.db_manager.get_date_range_channel_trend(start_date, end_date)
+        except Exception as e:
+            logger.error(f"获取日期范围渠道趋势失败: {e}")
+            raise e
+
+# 演示如何使用session进行查询的示例方法
+class DataEncryptService:
+    """数据加密服务示例类"""
+    
+    def decrypt_batch_values(self, uuid_list: List[str]) -> Dict[str, Any]:
+        """批量解密数据的示例方法"""
+        from db_session import get_db_session
+        from sqlalchemy import text
+        
+        result = {}
+        session = get_db_session()
+        try:
+            # 构建IN查询的占位符
+            placeholders = ', '.join([':uuid{}'.format(i) for i in range(len(uuid_list))])
+            sql = f"""
+                SELECT id, encrypted_value FROM data_encrypt_log 
+                WHERE id IN ({placeholders})
+            """
+            
+            # 构建参数字典
+            params = {f'uuid{i}': uuid_str for i, uuid_str in enumerate(uuid_list)}
+            
+            # 执行查询
+            records = session.execute(text(sql), params).fetchall()
+            
+            for record in records:
+                if record.encrypted_value:
+                    # 这里应该调用实际的解密方法
+                    result[record.id] = self.decrypt_value(record.encrypted_value)
+                else:
+                    result[record.id] = None
+            
+            # 对于没有找到的UUID，设置为None
+            for uuid_str in uuid_list:
+                if str(uuid_str) not in result:
+                    result[uuid_str] = None
+                    
+        except Exception as e:
+            logger.error(f"批量解密数据失败: {e}")
+            # 异常情况下，所有UUID都返回None
+            for uuid_str in uuid_list:
+                result[uuid_str] = None
+        finally:
+            session.close()
+            
+        return result
+    
+    def decrypt_value(self, encrypted_value: str) -> str:
+        """解密单个值的方法（示例）"""
+        # 这里应该实现实际的解密逻辑
+        return f"decrypted_{encrypted_value}"
