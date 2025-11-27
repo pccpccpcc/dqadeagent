@@ -51,7 +51,19 @@
       </el-col>
     </el-row>
 
-    <!-- 3. 错误明细数据 -->
+    <!-- 3. 用户明细数据 -->
+    <el-row class="user-stats">
+      <el-col :span="24">
+        <UserStatsCard 
+          :users="userStats" 
+          :retention-stats="retentionStats"
+          :churned-users="churnedUsers"
+          :loading="loading"
+        />
+      </el-col>
+    </el-row>
+
+    <!-- 4. 错误明细数据 -->
     <el-row class="error-details-section">
       <el-col :span="24">
         <ErrorDetailsCard
@@ -62,7 +74,7 @@
       </el-col>
     </el-row>
 
-    <!-- 4. 性能明细数据 -->
+    <!-- 5. 性能明细数据 -->
     <el-row class="performance-details-section">
       <el-col :span="24">
         <PerformanceDetailsCard
@@ -75,21 +87,9 @@
       </el-col>
     </el-row>
 
-    <!-- 5. 用户明细数据 -->
-    <el-row class="user-stats">
-      <el-col :span="24">
-        <UserStatsCard 
-          :users="userStats" 
-          :retention-stats="retentionStats"
-          :churned-users="churnedUsers"
-          :loading="loading"
-        />
-      </el-col>
-    </el-row>
-
     <!-- ==================== 趋势数据分析区域 ==================== -->
     
-    <!-- 5. 趋势数据分析 -->
+    <!-- 6. 趋势数据分析 -->
     <el-row class="weekly-trends">
       <el-col :span="24">
         <WeeklyTrendCards 
