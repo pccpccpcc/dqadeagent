@@ -100,8 +100,9 @@
     <el-row class="user-stats">
       <el-col :span="24">
         <UserStatsCard 
-          title="用户使用统计" 
           :users="userStats" 
+          :retention-stats="retentionStats"
+          :churned-users="churnedUsers"
           :loading="loading"
         />
       </el-col>
@@ -172,6 +173,8 @@ export default {
     const scenarioStats = ref([])
     const noTicketStats = ref({})
     const userStats = ref([])
+    const retentionStats = ref({})
+    const churnedUsers = ref({})
     
     // 错误明细数据
     const agentErrorData = ref({})
@@ -221,6 +224,8 @@ export default {
           scenarioStatsRes,
           noTicketStatsRes,
           userStatsRes,
+          retentionStatsRes,
+          churnedUsersRes,
           weeklyQueryTrendRes,
           weeklyStepTrendRes,
           weeklyChannelTrendRes,
@@ -235,6 +240,8 @@ export default {
           dashboardApi.getScenarioStats(date),
           dashboardApi.getNoTicketStats(date),
           dashboardApi.getUserStats(date),
+          dashboardApi.getUserRetentionStats(date),
+          dashboardApi.getChurnedUsers(date),
           // 趋势图使用今天的日期，而不是查询日期
           dashboardApi.getWeeklyQueryTrend({ endDate: new Date().toISOString().split('T')[0] }),
           dashboardApi.getWeeklyStepTrend({ endDate: new Date().toISOString().split('T')[0] }),
@@ -253,6 +260,8 @@ export default {
         scenarioStats.value = scenarioStatsRes || []
         noTicketStats.value = noTicketStatsRes || {}
         userStats.value = userStatsRes || []
+        retentionStats.value = retentionStatsRes || {}
+        churnedUsers.value = churnedUsersRes || {}
         weeklyQueryTrend.value = weeklyQueryTrendRes || []
         weeklyStepTrend.value = weeklyStepTrendRes || []
         weeklyChannelTrend.value = weeklyChannelTrendRes || []
@@ -286,6 +295,8 @@ export default {
       scenarioStats,
       noTicketStats,
       userStats,
+      retentionStats,
+      churnedUsers,
       weeklyQueryTrend,
       weeklyStepTrend,
       weeklyChannelTrend,

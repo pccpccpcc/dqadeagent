@@ -330,3 +330,43 @@ class ApiHandlers:
                 {"error": str(e), "code": 500}, 
                 status=500
             )
+    
+    async def user_retention_stats_handler(self, request: web.Request):
+        """获取用户留存率统计"""
+        try:
+            data = await request.json()
+            queryDate = data.get('queryDate')
+            if not queryDate:
+                return web.json_response(
+                    {"error": "缺少queryDate参数", "code": 400},
+                    status=400
+                )
+
+            stats = self.data_service.get_user_retention_stats(queryDate)
+            return web.json_response({"data": stats, "code": 200})
+        except Exception as e:
+            logger.error(f"获取用户留存率统计失败: {e}")
+            return web.json_response(
+                {"error": str(e), "code": 500}, 
+                status=500
+            )
+    
+    async def churned_users_handler(self, request: web.Request):
+        """获取流失用户列表"""
+        try:
+            data = await request.json()
+            queryDate = data.get('queryDate')
+            if not queryDate:
+                return web.json_response(
+                    {"error": "缺少queryDate参数", "code": 400},
+                    status=400
+                )
+
+            users = self.data_service.get_churned_users(queryDate)
+            return web.json_response({"data": users, "code": 200})
+        except Exception as e:
+            logger.error(f"获取流失用户列表失败: {e}")
+            return web.json_response(
+                {"error": str(e), "code": 500}, 
+                status=500
+            )

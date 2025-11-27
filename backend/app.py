@@ -70,6 +70,8 @@ app.router.add_post("/api/weekly-step-trend", api_handlers.step_trend_handler)
 app.router.add_post("/api/weekly-channel-trend", api_handlers.channel_trend_handler)
 app.router.add_post("/api/agent-error-details", api_handlers.agent_error_details_handler)
 app.router.add_post("/api/ds-error-details", api_handlers.ds_error_details_handler)
+app.router.add_post("/api/user-retention-stats", api_handlers.user_retention_stats_handler)
+app.router.add_post("/api/churned-users", api_handlers.churned_users_handler)
 
 def run():
     """运行应用"""

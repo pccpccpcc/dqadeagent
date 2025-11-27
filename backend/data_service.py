@@ -133,3 +133,19 @@ class DataService:
         except Exception as e:
             logger.error(f"获取DS错误明细失败: {e}")
             raise e
+    
+    def get_user_retention_stats(self, queryDate: str) -> Dict[str, Any]:
+        """获取用户留存率统计"""
+        try:
+            return self.db_manager.get_user_retention_stats(queryDate)
+        except Exception as e:
+            logger.error(f"获取用户留存率统计失败: {e}")
+            raise e
+    
+    def get_churned_users(self, queryDate: str) -> Dict[str, Any]:
+        """获取流失用户列表"""
+        try:
+            return self.db_manager.get_churned_users(queryDate)
+        except Exception as e:
+            logger.error(f"获取流失用户列表失败: {e}")
+            raise e

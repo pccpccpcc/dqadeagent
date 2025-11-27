@@ -115,7 +115,15 @@ export const dashboardApi = {
   
   // 获取DS子系统错误明细
   getDsErrorDetails: (queryDate) => 
-    callApi('/api/ds-error-details', { queryDate })
+    callApi('/api/ds-error-details', { queryDate }),
+  
+  // 获取用户留存率统计
+  getUserRetentionStats: (queryDate) => 
+    callApi('/api/user-retention-stats', { queryDate }),
+  
+  // 获取流失用户列表
+  getChurnedUsers: (queryDate) => 
+    callApi('/api/churned-users', { queryDate })
 }
 
 export default api

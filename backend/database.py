@@ -1675,6 +1675,196 @@ class DatabaseManager:
             logger.error(f"获取DS错误明细失败: {e}")
             raise e
 
+    def get_user_retention_stats(self, queryDate: str) -> Dict[str, Any]:
+        """获取用户留存率统计"""
+        try:
+            date_obj = datetime.strptime(queryDate, '%Y-%m-%d').date()
+            
+            # 计算7日留存率
+            d0_date_7 = date_obj - timedelta(days=7)
+            d0_next_7 = d0_date_7 + timedelta(days=1)
+            
+            # D0用户（7天前活跃的用户）
+            d0_users_7_sql = """
+                SELECT DISTINCT user_id
+                FROM t_handler_logs
+                WHERE DATE(create_time) >= %s AND DATE(create_time) < %s
+                AND user_id IS NOT NULL
+            """
+            d0_users_7 = self.execute_query(d0_users_7_sql, (d0_date_7.strftime('%Y-%m-%d'), d0_next_7.strftime('%Y-%m-%d')))
+            d0_count_7 = len(d0_users_7)
+            
+            # D7用户（今天活跃的用户，且在7天前也活跃）
+            if d0_count_7 > 0:
+                d0_user_ids_7 = [u['user_id'] for u in d0_users_7]
+                placeholders_7 = ', '.join(['%s'] * len(d0_user_ids_7))
+                d7_users_sql = f"""
+                    SELECT DISTINCT user_id
+                    FROM t_handler_logs
+                    WHERE DATE(create_time) = %s
+                    AND user_id IN ({placeholders_7})
+                """
+                d7_users = self.execute_query(d7_users_sql, tuple([queryDate] + d0_user_ids_7))
+                d7_count = len(d7_users)
+                day7_retention = round(d7_count * 100.0 / d0_count_7, 2) if d0_count_7 > 0 else 0
+            else:
+                d7_count = 0
+                day7_retention = 0
+            
+            # 计算15日留存率
+            d0_date_15 = date_obj - timedelta(days=15)
+            d0_next_15 = d0_date_15 + timedelta(days=1)
+            
+            # D0用户（15天前活跃的用户）
+            d0_users_15_sql = """
+                SELECT DISTINCT user_id
+                FROM t_handler_logs
+                WHERE DATE(create_time) >= %s AND DATE(create_time) < %s
+                AND user_id IS NOT NULL
+            """
+            d0_users_15 = self.execute_query(d0_users_15_sql, (d0_date_15.strftime('%Y-%m-%d'), d0_next_15.strftime('%Y-%m-%d')))
+            d0_count_15 = len(d0_users_15)
+            
+            # D15用户（今天活跃的用户，且在15天前也活跃）
+            if d0_count_15 > 0:
+                d0_user_ids_15 = [u['user_id'] for u in d0_users_15]
+                placeholders_15 = ', '.join(['%s'] * len(d0_user_ids_15))
+                d15_users_sql = f"""
+                    SELECT DISTINCT user_id
+                    FROM t_handler_logs
+                    WHERE DATE(create_time) = %s
+                    AND user_id IN ({placeholders_15})
+                """
+                d15_users = self.execute_query(d15_users_sql, tuple([queryDate] + d0_user_ids_15))
+                d15_count = len(d15_users)
+                day15_retention = round(d15_count * 100.0 / d0_count_15, 2) if d0_count_15 > 0 else 0
+            else:
+                d15_count = 0
+                day15_retention = 0
+            
+            return {
+                'day7_retention': {
+                    'd0_users': d0_count_7,
+                    'd7_retained': d7_count,
+                    'retention_rate': day7_retention
+                },
+                'day15_retention': {
+                    'd0_users': d0_count_15,
+                    'd15_retained': d15_count,
+                    'retention_rate': day15_retention
+                },
+                'queryDate': queryDate
+            }
+        except Exception as e:
+            logger.error(f"获取用户留存率统计失败: {e}")
+            raise e
+    
+    def get_churned_users(self, queryDate: str) -> Dict[str, Any]:
+        """获取流失用户列表"""
+        try:
+            date_obj = datetime.strptime(queryDate, '%Y-%m-%d').date()
+            
+            # 7日流失用户：7天前有活跃，但最近7天没有活跃
+            seven_days_ago = date_obj - timedelta(days=7)
+            
+            # 找出7天前有活跃的所有用户
+            users_before_7_sql = """
+                SELECT DISTINCT user_id
+                FROM t_handler_logs
+                WHERE DATE(create_time) < %s
+                AND user_id IS NOT NULL
+            """
+            users_before_7 = self.execute_query(users_before_7_sql, (seven_days_ago.strftime('%Y-%m-%d'),))
+            
+            # 找出最近7天有活跃的用户
+            users_recent_7_sql = """
+                SELECT DISTINCT user_id
+                FROM t_handler_logs
+                WHERE DATE(create_time) >= %s AND DATE(create_time) <= %s
+                AND user_id IS NOT NULL
+            """
+            users_recent_7 = self.execute_query(users_recent_7_sql, (seven_days_ago.strftime('%Y-%m-%d'), queryDate))
+            
+            # 计算差集：之前有但最近7天没有的
+            recent_7_user_ids = set([u['user_id'] for u in users_recent_7])
+            churned_7_users = []
+            for user in users_before_7:
+                if user['user_id'] not in recent_7_user_ids:
+                    # 获取该用户最后一次活跃时间
+                    last_active_sql = """
+                        SELECT MAX(DATE(create_time)) as last_active_date,
+                               COUNT(1) as total_queries
+                        FROM t_handler_logs
+                        WHERE user_id = %s
+                    """
+                    last_active = self.execute_query(last_active_sql, (user['user_id'],))
+                    churned_7_users.append({
+                        'user_id': user['user_id'],
+                        'last_active_date': last_active[0]['last_active_date'].strftime('%Y-%m-%d') if last_active[0]['last_active_date'] else None,
+                        'total_queries': last_active[0]['total_queries'],
+                        'days_inactive': (date_obj - last_active[0]['last_active_date']).days if last_active[0]['last_active_date'] else None
+                    })
+            
+            # 15日流失用户：15天前有活跃，但最近15天没有活跃
+            fifteen_days_ago = date_obj - timedelta(days=15)
+            
+            # 找出15天前有活跃的所有用户
+            users_before_15_sql = """
+                SELECT DISTINCT user_id
+                FROM t_handler_logs
+                WHERE DATE(create_time) < %s
+                AND user_id IS NOT NULL
+            """
+            users_before_15 = self.execute_query(users_before_15_sql, (fifteen_days_ago.strftime('%Y-%m-%d'),))
+            
+            # 找出最近15天有活跃的用户
+            users_recent_15_sql = """
+                SELECT DISTINCT user_id
+                FROM t_handler_logs
+                WHERE DATE(create_time) >= %s AND DATE(create_time) <= %s
+                AND user_id IS NOT NULL
+            """
+            users_recent_15 = self.execute_query(users_recent_15_sql, (fifteen_days_ago.strftime('%Y-%m-%d'), queryDate))
+            
+            # 计算差集：之前有但最近15天没有的
+            recent_15_user_ids = set([u['user_id'] for u in users_recent_15])
+            churned_15_users = []
+            for user in users_before_15:
+                if user['user_id'] not in recent_15_user_ids:
+                    # 获取该用户最后一次活跃时间
+                    last_active_sql = """
+                        SELECT MAX(DATE(create_time)) as last_active_date,
+                               COUNT(1) as total_queries
+                        FROM t_handler_logs
+                        WHERE user_id = %s
+                    """
+                    last_active = self.execute_query(last_active_sql, (user['user_id'],))
+                    churned_15_users.append({
+                        'user_id': user['user_id'],
+                        'last_active_date': last_active[0]['last_active_date'].strftime('%Y-%m-%d') if last_active[0]['last_active_date'] else None,
+                        'total_queries': last_active[0]['total_queries'],
+                        'days_inactive': (date_obj - last_active[0]['last_active_date']).days if last_active[0]['last_active_date'] else None
+                    })
+            
+            # 按未活跃天数排序
+            churned_7_users.sort(key=lambda x: x['days_inactive'] if x['days_inactive'] else 0, reverse=True)
+            churned_15_users.sort(key=lambda x: x['days_inactive'] if x['days_inactive'] else 0, reverse=True)
+            
+            return {
+                'churned_7_days': {
+                    'count': len(churned_7_users),
+                    'users': churned_7_users
+                },
+                'churned_15_days': {
+                    'count': len(churned_15_users),
+                    'users': churned_15_users
+                },
+                'queryDate': queryDate
+            }
+        except Exception as e:
+            logger.error(f"获取流失用户列表失败: {e}")
+            raise e
+
     def close(self):
         """关闭连接（SQLAlchemy不需要手动关闭连接池）"""
         # SQLAlchemy的连接池会自动管理连接
