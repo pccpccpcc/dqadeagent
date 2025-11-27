@@ -40,7 +40,6 @@
             title="环节耗时明细数据" 
             :steps="stepPerformance" 
             :loading="loading"
-            :show-header="false"
           />
         </el-col>
       </el-row>
