@@ -30,22 +30,6 @@ class DataService:
             logger.error(f"获取非模板查询统计数据失败: {e}")
             raise e
     
-    def get_template_query_errors(self, queryDate: str) -> List[Dict[str, Any]]:
-        """获取模板查询错误统计"""
-        try:
-            return self.db_manager.get_template_query_errors(queryDate)
-        except Exception as e:
-            logger.error(f"获取模板查询错误统计失败: {e}")
-            raise e
-    
-    def get_non_template_query_errors(self, queryDate: str) -> List[Dict[str, Any]]:
-        """获取非模板查询错误统计"""
-        try:
-            return self.db_manager.get_non_template_query_errors(queryDate)
-        except Exception as e:
-            logger.error(f"获取非模板查询错误统计失败: {e}")
-            raise e
-    
     def get_template_query_performance(self, queryDate: str) -> List[Dict[str, Any]]:
         """获取模板查询性能统计"""
         try:
@@ -132,6 +116,22 @@ class DataService:
             return self.db_manager.get_date_range_channel_trend(start_date, end_date)
         except Exception as e:
             logger.error(f"获取日期范围渠道趋势失败: {e}")
+            raise e
+    
+    def get_agent_error_details(self, queryDate: str) -> Dict[str, Any]:
+        """获取Agent子系统错误明细数据"""
+        try:
+            return self.db_manager.get_agent_error_details(queryDate)
+        except Exception as e:
+            logger.error(f"获取Agent错误明细失败: {e}")
+            raise e
+    
+    def get_ds_error_details(self, queryDate: str) -> Dict[str, Any]:
+        """获取DS子系统错误明细数据"""
+        try:
+            return self.db_manager.get_ds_error_details(queryDate)
+        except Exception as e:
+            logger.error(f"获取DS错误明细失败: {e}")
             raise e
 
 # 演示如何使用session进行查询的示例方法

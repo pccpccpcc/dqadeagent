@@ -27,58 +27,33 @@
       </el-card>
     </div>
 
-    <!-- 概览统计 -->
-    <el-row :gutter="20" class="overview-stats">
-      <el-col :span="12">
-        <QueryStatsCard 
-          title="模板查询统计" 
-          :stats="templateStats" 
-          :loading="loading"
-          type="template"
-        />
-      </el-col>
-      <el-col :span="12">
-        <QueryStatsCard 
-          title="非模板查询统计" 
-          :stats="nonTemplateStats" 
-          :loading="loading"
-          type="non-template"
-        />
-      </el-col>
-    </el-row>
-
-    <!-- 错误分析 -->
-    <el-row :gutter="20" class="error-analysis">
-      <el-col :span="12">
-        <ErrorAnalysisCard 
-          title="模板查询错误分析" 
-          :errors="templateErrors" 
-          :loading="loading"
-        />
-      </el-col>
-      <el-col :span="12">
-        <ErrorAnalysisCard 
-          title="非模板查询错误分析" 
-          :errors="nonTemplateErrors" 
+    <!-- 综合统计分析 -->
+    <el-row class="comprehensive-stats">
+      <el-col :span="24">
+        <ComprehensiveStatsCard 
+          :stats="comprehensiveStats" 
           :loading="loading"
         />
       </el-col>
     </el-row>
 
-    <!-- 性能分析 -->
-    <el-row :gutter="20" class="performance-analysis">
-      <el-col :span="12">
-        <PerformanceCard 
-          title="模板查询性能分析" 
-          :performance="templatePerformance" 
+    <!-- 错误明细数据 -->
+    <el-row class="error-details-section">
+      <el-col :span="24">
+        <ErrorDetailsCard
+          :agent-error-data="agentErrorData"
+          :ds-error-data="dsErrorData"
           :loading="loading"
-          @view-detail="viewPerformanceDetail"
         />
       </el-col>
-      <el-col :span="12">
-        <PerformanceCard 
-          title="非模板查询性能分析" 
-          :performance="nonTemplatePerformance" 
+    </el-row>
+
+    <!-- 耗时明细数据 -->
+    <el-row class="performance-details-section">
+      <el-col :span="24">
+        <PerformanceDetailsCard
+          :template-performance="templatePerformance"
+          :non-template-performance="nonTemplatePerformance"
           :loading="loading"
           @view-detail="viewPerformanceDetail"
         />
@@ -96,26 +71,26 @@
       </el-col>
     </el-row>
 
-    <!-- 其他统计 -->
-    <el-row :gutter="20" class="other-stats">
-      <el-col :span="8">
-        <ChannelStatsCard 
-          title="渠道查询统计" 
-          :channels="channelStats" 
-          :loading="loading"
-        />
+    <!-- 渠道、场景、免提单统计 -->
+    <el-row :gutter="20" class="channel-scenario-stats">
+      <el-col :span="12">
+        <div class="left-column">
+          <ChannelStatsCard 
+            title="渠道查询统计" 
+            :channel-data="channelStats" 
+            :loading="loading"
+          />
+          <NoTicketStatsCard 
+            title="免提单统计" 
+            :stats="noTicketStats" 
+            :loading="loading"
+          />
+        </div>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="12">
         <ScenarioStatsCard 
           title="场景查询统计" 
           :scenarios="scenarioStats" 
-          :loading="loading"
-        />
-      </el-col>
-      <el-col :span="8">
-        <NoTicketStatsCard 
-          title="免提单统计" 
-          :stats="noTicketStats" 
           :loading="loading"
         />
       </el-col>
@@ -157,9 +132,9 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
 import { dashboardApi } from '@/services/api'
-import QueryStatsCard from '@/components/QueryStatsCard.vue'
-import ErrorAnalysisCard from '@/components/ErrorAnalysisCard.vue'
-import PerformanceCard from '@/components/PerformanceCard.vue'
+import ComprehensiveStatsCard from '@/components/ComprehensiveStatsCard.vue'
+import ErrorDetailsCard from '@/components/ErrorDetailsCard.vue'
+import PerformanceDetailsCard from '@/components/PerformanceDetailsCard.vue'
 import StepPerformanceCard from '@/components/StepPerformanceCard.vue'
 import ChannelStatsCard from '@/components/ChannelStatsCard.vue'
 import ScenarioStatsCard from '@/components/ScenarioStatsCard.vue'
@@ -172,9 +147,9 @@ export default {
   name: 'Dashboard',
   components: {
     Refresh,
-    QueryStatsCard,
-    ErrorAnalysisCard,
-    PerformanceCard,
+    ComprehensiveStatsCard,
+    ErrorDetailsCard,
+    PerformanceDetailsCard,
     StepPerformanceCard,
     ChannelStatsCard,
     ScenarioStatsCard,
@@ -189,17 +164,18 @@ export default {
     const selectedDate = ref('2025-10-21') // 默认有数据的日期
     
     // 统计数据
-    const templateStats = ref({})
-    const nonTemplateStats = ref({})
-    const templateErrors = ref([])
-    const nonTemplateErrors = ref([])
+    const comprehensiveStats = ref({})
     const templatePerformance = ref([])
     const nonTemplatePerformance = ref([])
     const stepPerformance = ref([])
-    const channelStats = ref([])
+    const channelStats = ref({ member_stats: [], non_member_stats: [] })
     const scenarioStats = ref([])
     const noTicketStats = ref({})
     const userStats = ref([])
+    
+    // 错误明细数据
+    const agentErrorData = ref({})
+    const dsErrorData = ref({})
     
     // 趋势数据
     const weeklyQueryTrend = ref([])
@@ -237,10 +213,7 @@ export default {
 
         // 并行加载所有数据
         const [
-          templateStatsRes,
-          nonTemplateStatsRes,
-          templateErrorsRes,
-          nonTemplateErrorsRes,
+          comprehensiveStatsRes,
           templatePerformanceRes,
           nonTemplatePerformanceRes,
           stepPerformanceRes,
@@ -250,12 +223,11 @@ export default {
           userStatsRes,
           weeklyQueryTrendRes,
           weeklyStepTrendRes,
-          weeklyChannelTrendRes
+          weeklyChannelTrendRes,
+          agentErrorDataRes,
+          dsErrorDataRes
         ] = await Promise.all([
-          dashboardApi.getTemplateQueryStats(date),
-          dashboardApi.getNonTemplateQueryStats(date),
-          dashboardApi.getTemplateQueryErrors(date),
-          dashboardApi.getNonTemplateQueryErrors(date),
+          dashboardApi.getTemplateQueryStats(date), // 现在返回综合统计数据
           dashboardApi.getTemplateQueryPerformance(date),
           dashboardApi.getNonTemplateQueryPerformance(date),
           dashboardApi.getStepPerformance(date),
@@ -266,24 +238,26 @@ export default {
           // 趋势图使用今天的日期，而不是查询日期
           dashboardApi.getWeeklyQueryTrend({ endDate: new Date().toISOString().split('T')[0] }),
           dashboardApi.getWeeklyStepTrend({ endDate: new Date().toISOString().split('T')[0] }),
-          dashboardApi.getWeeklyChannelTrend({ endDate: new Date().toISOString().split('T')[0] })
+          dashboardApi.getWeeklyChannelTrend({ endDate: new Date().toISOString().split('T')[0] }),
+          // 加载错误明细数据
+          dashboardApi.getAgentErrorDetails(date),
+          dashboardApi.getDsErrorDetails(date)
         ])
 
         // 更新数据
-        templateStats.value = templateStatsRes || {}
-        nonTemplateStats.value = nonTemplateStatsRes || {}
-        templateErrors.value = templateErrorsRes || []
-        nonTemplateErrors.value = nonTemplateErrorsRes || []
+        comprehensiveStats.value = comprehensiveStatsRes || {}
         templatePerformance.value = templatePerformanceRes || []
         nonTemplatePerformance.value = nonTemplatePerformanceRes || []
         stepPerformance.value = stepPerformanceRes || []
-        channelStats.value = channelStatsRes || []
+        channelStats.value = channelStatsRes || { member_stats: [], non_member_stats: [] }
         scenarioStats.value = scenarioStatsRes || []
         noTicketStats.value = noTicketStatsRes || {}
         userStats.value = userStatsRes || []
         weeklyQueryTrend.value = weeklyQueryTrendRes || []
         weeklyStepTrend.value = weeklyStepTrendRes || []
         weeklyChannelTrend.value = weeklyChannelTrendRes || []
+        agentErrorData.value = agentErrorDataRes || {}
+        dsErrorData.value = dsErrorDataRes || {}
 
         ElMessage.success('数据加载成功')
       } catch (error) {
@@ -302,10 +276,9 @@ export default {
     return {
       loading,
       selectedDate,
-      templateStats,
-      nonTemplateStats,
-      templateErrors,
-      nonTemplateErrors,
+      comprehensiveStats,
+      agentErrorData,
+      dsErrorData,
       templatePerformance,
       nonTemplatePerformance,
       stepPerformance,
@@ -341,10 +314,17 @@ export default {
 }
 
 .overview-stats,
-.error-analysis,
-.performance-analysis,
-.other-stats {
+.comprehensive-stats,
+.error-details-section,
+.performance-details-section,
+.channel-scenario-stats {
   margin-bottom: 20px;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .step-performance,

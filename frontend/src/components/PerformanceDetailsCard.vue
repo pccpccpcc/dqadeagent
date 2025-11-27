@@ -1,0 +1,89 @@
+<template>
+  <el-card class="performance-details-card">
+    <template #header>
+      <div class="card-header">
+        <span class="card-title">
+          <el-icon><Timer /></el-icon>
+          耗时明细数据
+        </span>
+      </div>
+    </template>
+    
+    <div v-loading="loading" class="performance-details-content">
+      <el-row :gutter="20">
+        <!-- 模板查询耗时明细 -->
+        <el-col :span="12">
+          <PerformanceDetailSubCard
+            title="模板查询耗时明细数据"
+            :performance="templatePerformance"
+            :loading="loading"
+            @view-detail="$emit('view-detail', $event)"
+          />
+        </el-col>
+        
+        <!-- 非模板查询耗时明细 -->
+        <el-col :span="12">
+          <PerformanceDetailSubCard
+            title="非模板查询耗时明细数据"
+            :performance="nonTemplatePerformance"
+            :loading="loading"
+            @view-detail="$emit('view-detail', $event)"
+          />
+        </el-col>
+      </el-row>
+    </div>
+  </el-card>
+</template>
+
+<script>
+import { Timer } from '@element-plus/icons-vue'
+import PerformanceDetailSubCard from './PerformanceDetailSubCard.vue'
+
+export default {
+  name: 'PerformanceDetailsCard',
+  components: {
+    Timer,
+    PerformanceDetailSubCard
+  },
+  props: {
+    templatePerformance: {
+      type: Array,
+      default: () => []
+    },
+    nonTemplatePerformance: {
+      type: Array,
+      default: () => []
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['view-detail']
+}
+</script>
+
+<style scoped>
+.performance-details-card {
+  margin-top: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.performance-details-content {
+  min-height: 200px;
+}
+</style>
+

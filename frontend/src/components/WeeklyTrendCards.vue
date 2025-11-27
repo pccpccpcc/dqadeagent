@@ -124,6 +124,13 @@
                 <el-icon><Share /></el-icon>
                 {{ getTrendTitle('各渠道查询趋势') }}
               </span>
+              <div class="header-controls">
+                <el-radio-group v-model="channelViewType" size="small">
+                  <el-radio-button label="all">全部</el-radio-button>
+                  <el-radio-button label="member">项目组成员</el-radio-button>
+                  <el-radio-button label="non_member">非项目组成员</el-radio-button>
+                </el-radio-group>
+              </div>
             </div>
           </template>
           
@@ -184,6 +191,7 @@ export default {
     // 响应式数据
     const dateRangeType = ref('week') // week, month, custom
     const customDateRange = ref([])
+    const channelViewType = ref('all') // all, member, non_member
     // 组件内部维护趋势数据状态
     const queryTrendData = ref([])
     const stepTrendData = ref([])
@@ -344,23 +352,23 @@ export default {
             smooth: true
           },
           {
-            name: '模板查询',
+            name: '项目组查询',
             type: 'line',
             data: dates.map(date => {
               const item = queryTrendData.value.find(d => d.date === date)
-              return item ? item.template_count : 0
+              return item ? item.member_count : 0
             }),
-            itemStyle: { color: '#91CC75' },
+            itemStyle: { color: '#67C23A' },
             smooth: true
           },
           {
-            name: '非模板查询',
+            name: '非项目组查询',
             type: 'line',
             data: dates.map(date => {
               const item = queryTrendData.value.find(d => d.date === date)
-              return item ? item.non_template_count : 0
+              return item ? item.non_member_count : 0
             }),
-            itemStyle: { color: '#FAC858' },
+            itemStyle: { color: '#E6A23C' },
             smooth: true
           }
         ]
@@ -454,9 +462,21 @@ export default {
       
       const colors = ['#5470C6', '#91CC75', '#FAC858', '#EE6666', '#73C0DE', '#3BA272', '#FC8452']
       
+      // 根据选择的维度确定标题和数据字段
+      let titleText = '各渠道查询数量变化趋势'
+      let countField = 'count'
+      
+      if (channelViewType.value === 'member') {
+        titleText = '各渠道查询数量变化趋势（项目组成员）'
+        countField = 'member_count'
+      } else if (channelViewType.value === 'non_member') {
+        titleText = '各渠道查询数量变化趋势（非项目组成员）'
+        countField = 'non_member_count'
+      }
+      
       return {
         title: {
-          text: '各渠道查询数量变化趋势',
+          text: titleText,
           left: 'center',
           textStyle: {
             fontSize: 14,
@@ -498,7 +518,7 @@ export default {
           type: 'line',
           data: dates.map(date => {
             const item = channelTrendData.value.find(d => d.date === date && d.channel_name === channelName)
-            return item ? item.count : 0
+            return item ? item[countField] : 0
           }),
           itemStyle: { color: colors[index % colors.length] },
           smooth: true
@@ -510,6 +530,7 @@ export default {
       // 响应式数据
       dateRangeType,
       customDateRange,
+      channelViewType,
       queryTrendData,
       stepTrendData,
       channelTrendData,
@@ -541,6 +562,7 @@ export default {
 .card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .card-title {
@@ -549,6 +571,12 @@ export default {
   gap: 8px;
   font-weight: 500;
   font-size: 16px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .trend-content {

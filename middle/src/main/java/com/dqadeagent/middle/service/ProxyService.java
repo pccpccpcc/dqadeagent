@@ -71,20 +71,37 @@ public class ProxyService {
                 throw new RuntimeException("Backend returned null response");
             }
             
-            logger.info("后端响应: " + response.toString());
+            logger.info("Backend response: " + response.toString());
             
             // 检查是否是数组响应
             if (response.has("_array_")) {
                 // 如果是数组，直接返回数组
-                logger.info("后端返回数组，直接转换");
+                logger.info("Detected array response");
                 JSONArray array = response.getJSONArray("_array_");
                 return jsonArrayToList(array);
             } else {
-                // 如果是对象，返回Map
-                logger.info("开始转换响应对象");
-                Object result = jsonObjectToMap(response);
-                logger.info("响应对象转换完成");
-                return result;
+                // 如果是对象，检查是否有data字段并提取
+                logger.info("Processing object response");
+                if (response.has("data")) {
+                    // 提取data字段的内容
+                    logger.info("Extracting 'data' field from backend response");
+                    Object dataValue = response.get("data");
+                    if (dataValue instanceof JSONObject) {
+                        logger.info("Data is JSONObject, converting to Map");
+                        return jsonObjectToMap((JSONObject) dataValue);
+                    } else if (dataValue instanceof JSONArray) {
+                        logger.info("Data is JSONArray, converting to List");
+                        return jsonArrayToList((JSONArray) dataValue);
+                    } else {
+                        logger.info("Data is primitive, returning as is");
+                        return dataValue;
+                    }
+                } else {
+                    // 如果没有data字段，返回整个对象
+                    logger.info("No data field found, returning entire response");
+                    Object result = jsonObjectToMap(response);
+                    return result;
+                }
             }
 
         } catch (Exception e) {

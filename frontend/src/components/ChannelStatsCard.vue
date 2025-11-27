@@ -10,41 +10,43 @@
     </template>
     
     <div v-loading="loading" class="channel-content">
-      <div v-if="!loading && channels.length === 0" class="no-data">
-        <el-empty description="暂无渠道数据" />
-      </div>
-      
-      <div v-else-if="!loading" class="channel-stats">
-        <!-- 渠道统计列表 -->
-        <div class="channel-list">
-          <div 
-            v-for="(channel, index) in channels" 
-            :key="channel.channel"
-            class="channel-item"
-            :style="{ animationDelay: `${index * 0.1}s` }"
-          >
-            <div class="channel-info">
+      <div v-if="!loading" class="channel-stats">
+        <el-table
+          :data="tableData"
+          style="width: 100%"
+          stripe
+          border
+        >
+          <el-table-column prop="channel_name" label="渠道" width="120">
+            <template #default="{ row }">
               <div class="channel-name">
                 <el-icon><Platform /></el-icon>
-                {{ channel.channel_name }}
+                <span>{{ row.channel_name }}</span>
               </div>
-              <div class="channel-code">{{ channel.channel }}</div>
-            </div>
-            <div class="channel-count">
-              <span class="count-number">{{ channel.count }}</span>
-              <span class="count-label">次查询</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 渠道分布图表 -->
-        <div class="chart-container" v-if="chartData.length > 0">
-          <v-chart 
-            class="chart" 
-            :option="chartOption" 
-            autoresize
-          />
-        </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="总体" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag type="primary" class="count-tag">
+                {{ row.total_count }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="项目组" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag type="success" class="count-tag">
+                {{ row.member_count }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="非项目组" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag type="warning" class="count-tag">
+                {{ row.non_member_count }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </div>
   </el-card>
@@ -65,9 +67,12 @@ export default {
       type: String,
       required: true
     },
-    channels: {
-      type: Array,
-      default: () => []
+    channelData: {
+      type: Object,
+      default: () => ({
+        member_stats: [],
+        non_member_stats: []
+      })
     },
     loading: {
       type: Boolean,
@@ -75,62 +80,49 @@ export default {
     }
   },
   setup(props) {
-    // 图表数据
-    const chartData = computed(() => {
-      return props.channels.map(channel => ({
-        name: channel.channel_name,
-        value: channel.count
-      }))
-    })
+    // 固定的渠道顺序和名称映射
+    const channelOrder = [
+      { channel: 'DQ_QW', name: 'DQ_QW' },
+      { channel: 'DQ_WEB', name: 'DQ_WEB' },
+      { channel: 'DKK', name: 'DKK' },
+      { channel: 'XQ_WEB', name: 'XQ_WEB' }
+    ]
 
-    // 图表配置
-    const chartOption = computed(() => {
-      const colors = ['#5470C6', '#91CC75', '#FAC858', '#EE6666', '#73C0DE', '#3BA272', '#FC8452']
-      
-      return {
-        title: {
-          text: '渠道查询分布',
-          left: 'center',
-          textStyle: {
-            fontSize: 14,
-            fontWeight: 'normal'
-          }
-        },
-        tooltip: {
-          trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)'
-        },
-        legend: {
-          bottom: '0',
-          left: 'center',
-          type: 'scroll'
-        },
-        color: colors,
-        series: [
-          {
-            name: '渠道查询',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            center: ['50%', '45%'],
-            data: chartData.value,
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            },
-            label: {
-              formatter: '{b}\n{c}次'
-            }
-          }
-        ]
-      }
+    // 处理表格数据
+    const tableData = computed(() => {
+      const memberStats = props.channelData.member_stats || []
+      const nonMemberStats = props.channelData.non_member_stats || []
+
+      // 创建映射表
+      const memberMap = {}
+      const nonMemberMap = {}
+
+      memberStats.forEach(item => {
+        memberMap[item.channel] = item.count
+      })
+
+      nonMemberStats.forEach(item => {
+        nonMemberMap[item.channel] = item.count
+      })
+
+      // 按固定顺序生成表格数据
+      return channelOrder.map(ch => {
+        const memberCount = memberMap[ch.channel] || 0
+        const nonMemberCount = nonMemberMap[ch.channel] || 0
+        const totalCount = memberCount + nonMemberCount
+
+        return {
+          channel: ch.channel,
+          channel_name: ch.name,
+          total_count: totalCount,
+          member_count: memberCount,
+          non_member_count: nonMemberCount
+        }
+      })
     })
 
     return {
-      chartData,
-      chartOption
+      tableData
     }
   }
 }
@@ -151,91 +143,38 @@ export default {
 }
 
 .channel-content {
-  min-height: 400px;
-}
-
-.no-data {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-}
-
-.channel-list {
-  margin-bottom: 20px;
-}
-
-.channel-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px;
-  margin-bottom: 10px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  animation: fadeInUp 0.5s ease;
-}
-
-.channel-item:hover {
-  background: #e9ecef;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.channel-info {
-  flex: 1;
+  min-height: 200px;
 }
 
 .channel-name {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 5px;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.channel-code {
-  font-size: 12px;
-  color: #666;
-  font-family: 'Monaco', 'Consolas', monospace;
-}
-
-.channel-count {
-  text-align: right;
-}
-
-.count-number {
-  font-size: 20px;
+.count-tag {
+  font-size: 14px;
   font-weight: bold;
-  color: #409eff;
-  display: block;
+  padding: 4px 12px;
 }
 
-.count-label {
-  font-size: 12px;
-  color: #666;
+:deep(.el-table) {
+  border-radius: 6px;
 }
 
-.chart-container {
-  height: 300px;
+:deep(.el-table th) {
+  background: #f5f7fa;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.chart {
-  height: 100%;
-  width: 100%;
+:deep(.el-table .el-table__body tr:hover > td) {
+  background-color: #f5f7fa;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+:deep(.el-table td) {
+  padding: 16px 0;
 }
 </style>
-

@@ -20,8 +20,11 @@
             </template>
             
             <el-descriptions :column="2" border>
-              <el-descriptions-item label="业务流水号">
+              <el-descriptions-item label="业务流水号" :span="2">
                 <el-tag type="primary">{{ detailData.biz_seq }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="用户查询" :span="2">
+                <div class="query-text">{{ userQuery }}</div>
               </el-descriptions-item>
               <el-descriptions-item label="总耗时">
                 <span class="total-cost">{{ formatTime(detailData.total_cost) }}</span>
@@ -85,90 +88,53 @@
           </el-card>
         </div>
 
-        <!-- DS请求步骤 -->
-        <div v-if="detailData.req_ds_steps.length > 0" class="ds-steps">
-          <el-card>
-            <template #header>
-              <div class="card-header">
-                <span class="card-title">
-                  <el-icon><Connection /></el-icon>
-                  DS请求步骤耗时
-                </span>
-              </div>
-            </template>
-            
-            <el-table
-              :data="detailData.req_ds_steps"
-              style="width: 100%"
-              size="small"
-              stripe
-            >
-              <el-table-column prop="step_name_cn" label="步骤名称" width="150" />
-              <el-table-column prop="sub_step_name" label="子步骤" width="120">
-                <template #default="{ row }">
-                  <el-tag size="small" type="warning">{{ row.sub_step_name }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="cost" label="耗时" width="120" align="center">
-                <template #default="{ row }">
-                  <span class="cost-time ds-cost">{{ formatTime(row.cost) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="step_name" label="英文标识" min-width="150">
-                <template #default="{ row }">
-                  <code class="step-code">{{ row.step_name }}</code>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-card>
-        </div>
-
-        <!-- SQL执行耗时 -->
-        <div v-if="detailData.sql_execution_times.length > 0" class="sql-times">
+        <!-- SQL执行详情 -->
+        <div v-if="detailData.sql_details && detailData.sql_details.length > 0" class="sql-details">
           <el-card>
             <template #header>
               <div class="card-header">
                 <span class="card-title">
                   <el-icon><DocumentCopy /></el-icon>
-                  SQL实际执行耗时
+                  SQL执行详情
                 </span>
               </div>
             </template>
             
-            <div class="sql-times-list">
-              <div 
-                v-for="(time, index) in detailData.sql_execution_times" 
-                :key="index"
-                class="sql-time-item"
-              >
-                <div class="sql-index">SQL #{{ index + 1 }}</div>
-                <div class="sql-time">
-                  <el-tag type="success">{{ formatSqlTime(time) }}</el-tag>
-                </div>
-              </div>
-            </div>
-          </el-card>
-        </div>
-
-        <!-- 性能图表 -->
-        <div class="performance-chart">
-          <el-card>
-            <template #header>
-              <div class="card-header">
-                <span class="card-title">
-                  <el-icon><Histogram /></el-icon>
-                  步骤耗时分布
-                </span>
-              </div>
-            </template>
-            
-            <div class="chart-container">
-              <v-chart 
-                class="chart" 
-                :option="chartOption" 
-                autoresize
-              />
-            </div>
+            <el-table
+              :data="detailData.sql_details"
+              style="width: 100%"
+              size="small"
+              stripe
+              border
+            >
+              <el-table-column type="index" label="序号" width="60" align="center" />
+              <el-table-column label="SQL语句" min-width="300">
+                <template #default="{ row }">
+                  <div class="sql-str-cell">
+                    <div class="sql-preview">{{ truncateSql(row.sql_str, 80) }}</div>
+                    <el-button 
+                      size="small" 
+                      text 
+                      type="primary"
+                      @click="viewSqlDetail(row.sql_str)"
+                    >
+                      查看完整SQL
+                    </el-button>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="query_time" label="调用DS耗时(ms)" width="140" align="right">
+                <template #default="{ row }">
+                  <span class="cost-value query-time">{{ row.query_time || 0 }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="sql_execute_time" label="SQL实际执行耗时(ms)" width="180" align="right">
+                <template #default="{ row }">
+                  <span class="cost-value execute-time">{{ row.sql_execute_time || 0 }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="create_time" label="执行时间" width="160" align="center" />
+            </el-table>
           </el-card>
         </div>
       </div>
@@ -177,9 +143,24 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="handleClose">关闭</el-button>
-        <el-button type="primary" @click="exportDetail">导出详情</el-button>
       </span>
     </template>
+
+    <!-- SQL详情对话框 -->
+    <el-dialog 
+      v-model="sqlDialogVisible" 
+      title="完整SQL语句"
+      width="70%"
+      :destroy-on-close="true"
+    >
+      <div class="sql-detail-content">
+        <pre>{{ currentSql }}</pre>
+      </div>
+      <template #footer>
+        <el-button @click="sqlDialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="copySql">复制</el-button>
+      </template>
+    </el-dialog>
   </el-dialog>
 </template>
 
@@ -188,11 +169,9 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { 
   InfoFilled, 
-  Operation, 
-  Timer, 
-  Connection, 
-  DocumentCopy, 
-  Histogram 
+  Operation,
+  Timer,
+  DocumentCopy
 } from '@element-plus/icons-vue'
 import { dashboardApi } from '@/services/api'
 
@@ -202,9 +181,7 @@ export default {
     InfoFilled,
     Operation,
     Timer,
-    Connection,
-    DocumentCopy,
-    Histogram
+    DocumentCopy
   },
   props: {
     modelValue: {
@@ -220,11 +197,29 @@ export default {
   setup(props, { emit }) {
     const loading = ref(false)
     const detailData = ref(null)
+    const sqlDialogVisible = ref(false)
+    const currentSql = ref('')
 
     // 对话框可见性
     const dialogVisible = computed({
       get: () => props.modelValue,
       set: (value) => emit('update:modelValue', value)
+    })
+
+    // 提取用户查询query字段
+    const userQuery = computed(() => {
+      if (!detailData.value || !detailData.value.req_info) {
+        return '无查询信息'
+      }
+      try {
+        const reqInfo = typeof detailData.value.req_info === 'string' 
+          ? JSON.parse(detailData.value.req_info) 
+          : detailData.value.req_info
+        return reqInfo.query || '无查询信息'
+      } catch (e) {
+        console.error('解析req_info失败:', e)
+        return '解析失败'
+      }
     })
 
     // 监听bizSeq变化，加载详情数据
@@ -255,20 +250,34 @@ export default {
       }
     }
 
+    // 截断SQL显示
+    const truncateSql = (sql, maxLength) => {
+      if (!sql) return '无SQL'
+      const str = String(sql)
+      if (str.length <= maxLength) return str
+      return str.substring(0, maxLength) + '...'
+    }
+
+    // 查看SQL详情
+    const viewSqlDetail = (sql) => {
+      currentSql.value = sql
+      sqlDialogVisible.value = true
+    }
+
+    // 复制SQL
+    const copySql = () => {
+      navigator.clipboard.writeText(currentSql.value).then(() => {
+        ElMessage.success('已复制到剪贴板')
+      }).catch(() => {
+        ElMessage.error('复制失败')
+      })
+    }
+
     // 格式化时间
     const formatTime = (time) => {
       if (!time) return '0ms'
       if (time < 1000) return `${Math.round(time)}ms`
       return `${(time / 1000).toFixed(2)}s`
-    }
-
-    // 格式化SQL时间
-    const formatSqlTime = (time) => {
-      if (!time || time === 'null' || time === '0') return '0ms'
-      const numTime = parseFloat(time)
-      if (isNaN(numTime)) return time
-      if (numTime < 1) return `${Math.round(numTime * 1000)}ms`
-      return `${numTime.toFixed(2)}s`
     }
 
     // 计算步骤耗时占比
@@ -284,91 +293,26 @@ export default {
       return '#F56C6C'
     }
 
-    // 图表配置
-    const chartOption = computed(() => {
-      if (!detailData.value) return {}
-
-      const steps = detailData.value.steps || []
-      
-      return {
-        title: {
-          text: '步骤耗时分布',
-          left: 'center'
-        },
-        tooltip: {
-          trigger: 'item',
-          formatter: function(params) {
-            return `${params.name}<br/>耗时: ${formatTime(params.value)}<br/>占比: ${params.percent}%`
-          }
-        },
-        series: [
-          {
-            type: 'pie',
-            radius: ['30%', '70%'],
-            center: ['50%', '60%'],
-            data: steps.map(step => ({
-              name: step.step_name_cn,
-              value: step.cost
-            })),
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            },
-            label: {
-              formatter: function(params) {
-                return `${params.name}\n${formatTime(params.value)}`
-              }
-            }
-          }
-        ]
-      }
-    })
-
     // 关闭对话框
     const handleClose = () => {
       dialogVisible.value = false
       detailData.value = null
     }
 
-    // 导出详情
-    const exportDetail = () => {
-      if (!detailData.value) return
-      
-      const data = {
-        bizSeq: detailData.value.biz_seq,
-        totalCost: detailData.value.total_cost,
-        steps: detailData.value.steps,
-        reqDsSteps: detailData.value.req_ds_steps,
-        sqlExecutionTimes: detailData.value.sql_execution_times
-      }
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `performance_detail_${detailData.value.biz_seq}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      
-      ElMessage.success('性能详情已导出')
-    }
-
     return {
       loading,
       detailData,
       dialogVisible,
+      userQuery,
+      sqlDialogVisible,
+      currentSql,
+      truncateSql,
+      viewSqlDetail,
+      copySql,
       formatTime,
-      formatSqlTime,
       getStepPercentage,
       getProgressColor,
-      chartOption,
-      handleClose,
-      exportDetail
+      handleClose
     }
   }
 }
@@ -394,10 +338,21 @@ export default {
 
 .basic-info,
 .steps-analysis,
-.ds-steps,
-.sql-times,
-.performance-chart {
+.sql-details {
   margin-bottom: 20px;
+}
+
+.query-text {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
+  padding: 8px 0;
+}
+
+.total-cost {
+  font-size: 18px;
+  font-weight: bold;
+  color: #f56c6c;
 }
 
 .step-name {
@@ -411,10 +366,6 @@ export default {
   color: #409eff;
 }
 
-.ds-cost {
-  color: #e6a23c;
-}
-
 .step-code {
   background: #f5f5f5;
   padding: 2px 6px;
@@ -423,39 +374,50 @@ export default {
   color: #666;
 }
 
-.total-cost {
-  font-size: 18px;
-  font-weight: bold;
-  color: #f56c6c;
-}
-
-.sql-times-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-.sql-time-item {
+.sql-str-cell {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 6px;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.sql-index {
-  font-weight: 500;
-  color: #333;
+.sql-preview {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #606266;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
-.chart-container {
-  height: 300px;
+.cost-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
 }
 
-.chart {
-  height: 100%;
-  width: 100%;
+.cost-value.query-time {
+  color: #409EFF;
+}
+
+.cost-value.execute-time {
+  color: #E6A23C;
+}
+
+.sql-detail-content {
+  max-height: 600px;
+  overflow-y: auto;
+  background: #F5F7FA;
+  padding: 20px;
+  border-radius: 4px;
+  border: 1px solid #DCDFE6;
+}
+
+.sql-detail-content pre {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #303133;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 :deep(.el-dialog) {
@@ -484,4 +446,3 @@ export default {
   border-radius: 10px;
 }
 </style>
-

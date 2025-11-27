@@ -39,12 +39,7 @@
             show-icon
           >
             <template #default>
-              <p>免提单查询指不需要提交生产权限访问单就能直接查询的操作，通常用于:</p>
-              <ul>
-                <li>预配置的系统查询</li>
-                <li>无需权限的公共数据查询</li>
-                <li>系统内置的查询模板</li>
-              </ul>
+              <p>免提单查询指不需要提交生产权限访问单就能直接查询的操作。</p>
             </template>
           </el-alert>
         </div>
@@ -168,7 +163,7 @@ export default {
 }
 
 .no-ticket-content {
-  min-height: 400px;
+  min-height: 200px;
 }
 
 .stats-display {
@@ -178,16 +173,16 @@ export default {
 .main-stat {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
+  gap: 15px;
+  padding: 15px;
   background: linear-gradient(135deg, #67C23A 0%, #85CE61 100%);
-  border-radius: 12px;
+  border-radius: 8px;
   color: white;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .stat-icon {
-  font-size: 48px;
+  font-size: 36px;
   opacity: 0.9;
 }
 
@@ -196,13 +191,13 @@ export default {
 }
 
 .stat-number {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 16px;
+  font-size: 14px;
   opacity: 0.9;
 }
 
@@ -211,25 +206,17 @@ export default {
 }
 
 .description {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .description p {
-  margin: 0 0 10px 0;
+  margin: 0;
   color: #666;
-}
-
-.description ul {
-  margin: 10px 0 0 20px;
-  color: #666;
-}
-
-.description li {
-  margin-bottom: 5px;
+  font-size: 14px;
 }
 
 .chart-container {
-  height: 250px;
+  height: 200px;
 }
 
 .chart {

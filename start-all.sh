@@ -72,7 +72,7 @@ fi
 
 # 启动后端
 echo -e "${GREEN}🚀 启动后端服务 (端口: 8000)...${NC}"
-nohup python3 main.py > backend_service.log 2>&1 &
+nohup python3 app.py > backend_service.log 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > service.pid
 echo -e "${GREEN}✅ 后端服务已启动 (PID: $BACKEND_PID)${NC}"

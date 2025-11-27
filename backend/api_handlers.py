@@ -77,46 +77,6 @@ class ApiHandlers:
                 status=500
             )
 
-    async def template_query_errors_handler(self, request: web.Request):
-        """获取模板查询错误统计"""
-        try:
-            data = await request.json()
-            queryDate = data.get('queryDate')
-            if not queryDate:
-                return web.json_response(
-                    {"error": "缺少queryDate参数", "code": 400},
-                    status=400
-                )
-
-            errors = self.data_service.get_template_query_errors(queryDate)
-            return web.json_response({"data": errors, "code": 200})
-        except Exception as e:
-            logger.error(f"获取模板查询错误统计失败: {e}")
-            return web.json_response(
-                {"error": str(e), "code": 500}, 
-                status=500
-            )
-
-    async def non_template_query_errors_handler(self, request: web.Request):
-        """获取非模板查询错误统计"""
-        try:
-            data = await request.json()
-            queryDate = data.get('queryDate')
-            if not queryDate:
-                return web.json_response(
-                    {"error": "缺少queryDate参数", "code": 400},
-                    status=400
-                )
-
-            errors = self.data_service.get_non_template_query_errors(queryDate)
-            return web.json_response({"data": errors, "code": 200})
-        except Exception as e:
-            logger.error(f"获取非模板查询错误统计失败: {e}")
-            return web.json_response(
-                {"error": str(e), "code": 500}, 
-                status=500
-            )
-
     async def template_query_performance_handler(self, request: web.Request):
         """获取模板查询性能统计"""
         try:
@@ -326,6 +286,46 @@ class ApiHandlers:
             return web.json_response({"data": trend, "code": 200})
         except Exception as e:
             logger.error(f"获取渠道趋势失败: {e}")
+            return web.json_response(
+                {"error": str(e), "code": 500}, 
+                status=500
+            )
+    
+    async def agent_error_details_handler(self, request: web.Request):
+        """获取Agent子系统错误明细数据"""
+        try:
+            data = await request.json()
+            queryDate = data.get('queryDate')
+            if not queryDate:
+                return web.json_response(
+                    {"error": "缺少queryDate参数", "code": 400},
+                    status=400
+                )
+
+            details = self.data_service.get_agent_error_details(queryDate)
+            return web.json_response({"data": details, "code": 200})
+        except Exception as e:
+            logger.error(f"获取Agent错误明细失败: {e}")
+            return web.json_response(
+                {"error": str(e), "code": 500}, 
+                status=500
+            )
+    
+    async def ds_error_details_handler(self, request: web.Request):
+        """获取DS子系统错误明细数据"""
+        try:
+            data = await request.json()
+            queryDate = data.get('queryDate')
+            if not queryDate:
+                return web.json_response(
+                    {"error": "缺少queryDate参数", "code": 400},
+                    status=400
+                )
+
+            details = self.data_service.get_ds_error_details(queryDate)
+            return web.json_response({"data": details, "code": 200})
+        except Exception as e:
+            logger.error(f"获取DS错误明细失败: {e}")
             return web.json_response(
                 {"error": str(e), "code": 500}, 
                 status=500

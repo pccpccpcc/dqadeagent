@@ -65,14 +65,6 @@ export const dashboardApi = {
   getNonTemplateQueryStats: (queryDate) => 
     callApi('/api/non-template-query/stats', { queryDate }),
   
-  // 获取模板查询错误统计
-  getTemplateQueryErrors: (queryDate) => 
-    callApi('/api/template-query/errors', { queryDate }),
-  
-  // 获取非模板查询错误统计
-  getNonTemplateQueryErrors: (queryDate) => 
-    callApi('/api/non-template-query/errors', { queryDate }),
-  
   // 获取模板查询性能统计
   getTemplateQueryPerformance: (queryDate) => 
     callApi('/api/template-query/performance', { queryDate }),
@@ -115,7 +107,15 @@ export const dashboardApi = {
   
   // 获取各渠道的查询趋势（支持自定义日期范围）
   getWeeklyChannelTrend: (params = {}) => 
-    callApi('/api/weekly-channel-trend', params)
+    callApi('/api/weekly-channel-trend', params),
+  
+  // 获取Agent子系统错误明细
+  getAgentErrorDetails: (queryDate) => 
+    callApi('/api/agent-error-details', { queryDate }),
+  
+  // 获取DS子系统错误明细
+  getDsErrorDetails: (queryDate) => 
+    callApi('/api/ds-error-details', { queryDate })
 }
 
 export default api

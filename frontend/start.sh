@@ -30,3 +30,8 @@ echo ""
 # 启动服务
 exec npm run serve
 
+
+
+
+
+
