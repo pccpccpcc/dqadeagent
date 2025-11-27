@@ -75,25 +75,12 @@
     </el-row>
 
     <!-- 4. 业务明细数据 -->
-    <el-row :gutter="20" class="channel-scenario-stats">
-      <el-col :span="12">
-        <div class="left-column">
-          <ChannelStatsCard 
-            title="渠道明细数据" 
-            :channel-data="channelStats" 
-            :loading="loading"
-          />
-          <NoTicketStatsCard 
-            title="免提单明细数据" 
-            :stats="noTicketStats" 
-            :loading="loading"
-          />
-        </div>
-      </el-col>
-      <el-col :span="12">
-        <ScenarioStatsCard 
-          title="场景明细数据" 
-          :scenarios="scenarioStats" 
+    <el-row class="business-details-section">
+      <el-col :span="24">
+        <BusinessDetailsCard
+          :channel-data="channelStats"
+          :scenarios="scenarioStats"
+          :no-ticket-stats="noTicketStats"
           :loading="loading"
         />
       </el-col>
@@ -142,9 +129,7 @@ import ComprehensiveStatsCard from '@/components/ComprehensiveStatsCard.vue'
 import ErrorDetailsCard from '@/components/ErrorDetailsCard.vue'
 import PerformanceDetailsCard from '@/components/PerformanceDetailsCard.vue'
 import StepPerformanceCard from '@/components/StepPerformanceCard.vue'
-import ChannelStatsCard from '@/components/ChannelStatsCard.vue'
-import ScenarioStatsCard from '@/components/ScenarioStatsCard.vue'
-import NoTicketStatsCard from '@/components/NoTicketStatsCard.vue'
+import BusinessDetailsCard from '@/components/BusinessDetailsCard.vue'
 import UserStatsCard from '@/components/UserStatsCard.vue'
 import PerformanceDetailDialog from '@/components/PerformanceDetailDialog.vue'
 import WeeklyTrendCards from '@/components/WeeklyTrendCards.vue'
@@ -157,9 +142,7 @@ export default {
     ErrorDetailsCard,
     PerformanceDetailsCard,
     StepPerformanceCard,
-    ChannelStatsCard,
-    ScenarioStatsCard,
-    NoTicketStatsCard,
+    BusinessDetailsCard,
     UserStatsCard,
     PerformanceDetailDialog,
     WeeklyTrendCards

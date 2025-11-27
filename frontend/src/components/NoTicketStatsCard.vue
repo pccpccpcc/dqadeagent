@@ -1,6 +1,6 @@
 <template>
   <el-card>
-    <template #header>
+    <template #header v-if="showHeader">
       <div class="card-header">
         <span class="card-title">
           <el-icon><Unlock /></el-icon>
@@ -79,6 +79,10 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    showHeader: {
+      type: Boolean,
+      default: true
     }
   },
   setup(props) {
