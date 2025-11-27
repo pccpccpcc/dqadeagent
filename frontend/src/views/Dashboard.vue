@@ -39,7 +39,19 @@
       </el-col>
     </el-row>
 
-    <!-- 2. 错误明细数据 -->
+    <!-- 2. 业务明细数据 -->
+    <el-row class="business-details-section">
+      <el-col :span="24">
+        <BusinessDetailsCard
+          :channel-data="channelStats"
+          :scenarios="scenarioStats"
+          :no-ticket-stats="noTicketStats"
+          :loading="loading"
+        />
+      </el-col>
+    </el-row>
+
+    <!-- 3. 错误明细数据 -->
     <el-row class="error-details-section">
       <el-col :span="24">
         <ErrorDetailsCard
@@ -50,38 +62,15 @@
       </el-col>
     </el-row>
 
-    <!-- 3. 性能明细数据 -->
-    <!-- 3.1 查询耗时明细数据 -->
+    <!-- 4. 性能明细数据 -->
     <el-row class="performance-details-section">
       <el-col :span="24">
         <PerformanceDetailsCard
           :template-performance="templatePerformance"
           :non-template-performance="nonTemplatePerformance"
+          :step-performance="stepPerformance"
           :loading="loading"
           @view-detail="viewPerformanceDetail"
-        />
-      </el-col>
-    </el-row>
-
-    <!-- 3.2 环节耗时明细数据 -->
-    <el-row class="step-performance">
-      <el-col :span="24">
-        <StepPerformanceCard 
-          title="环节耗时明细数据" 
-          :steps="stepPerformance" 
-          :loading="loading"
-        />
-      </el-col>
-    </el-row>
-
-    <!-- 4. 业务明细数据 -->
-    <el-row class="business-details-section">
-      <el-col :span="24">
-        <BusinessDetailsCard
-          :channel-data="channelStats"
-          :scenarios="scenarioStats"
-          :no-ticket-stats="noTicketStats"
-          :loading="loading"
         />
       </el-col>
     </el-row>
@@ -100,7 +89,7 @@
 
     <!-- ==================== 趋势数据分析区域 ==================== -->
     
-    <!-- 6. 趋势数据分析 -->
+    <!-- 5. 趋势数据分析 -->
     <el-row class="weekly-trends">
       <el-col :span="24">
         <WeeklyTrendCards 
@@ -128,7 +117,6 @@ import { dashboardApi } from '@/services/api'
 import ComprehensiveStatsCard from '@/components/ComprehensiveStatsCard.vue'
 import ErrorDetailsCard from '@/components/ErrorDetailsCard.vue'
 import PerformanceDetailsCard from '@/components/PerformanceDetailsCard.vue'
-import StepPerformanceCard from '@/components/StepPerformanceCard.vue'
 import BusinessDetailsCard from '@/components/BusinessDetailsCard.vue'
 import UserStatsCard from '@/components/UserStatsCard.vue'
 import PerformanceDetailDialog from '@/components/PerformanceDetailDialog.vue'
@@ -141,7 +129,6 @@ export default {
     ComprehensiveStatsCard,
     ErrorDetailsCard,
     PerformanceDetailsCard,
-    StepPerformanceCard,
     BusinessDetailsCard,
     UserStatsCard,
     PerformanceDetailDialog,

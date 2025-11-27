@@ -10,7 +10,8 @@
     </template>
     
     <div v-loading="loading" class="performance-details-content">
-      <el-row :gutter="20">
+      <!-- 查询耗时明细 -->
+      <el-row :gutter="20" class="query-performance">
         <!-- 模板查询耗时明细 -->
         <el-col :span="12">
           <PerformanceDetailSubCard
@@ -31,6 +32,18 @@
           />
         </el-col>
       </el-row>
+
+      <!-- 环节耗时明细 -->
+      <el-row class="step-performance">
+        <el-col :span="24">
+          <StepPerformanceCard 
+            title="环节耗时明细数据" 
+            :steps="stepPerformance" 
+            :loading="loading"
+            :show-header="false"
+          />
+        </el-col>
+      </el-row>
     </div>
   </el-card>
 </template>
@@ -38,12 +51,14 @@
 <script>
 import { Timer } from '@element-plus/icons-vue'
 import PerformanceDetailSubCard from './PerformanceDetailSubCard.vue'
+import StepPerformanceCard from './StepPerformanceCard.vue'
 
 export default {
   name: 'PerformanceDetailsCard',
   components: {
     Timer,
-    PerformanceDetailSubCard
+    PerformanceDetailSubCard,
+    StepPerformanceCard
   },
   props: {
     templatePerformance: {
@@ -51,6 +66,10 @@ export default {
       default: () => []
     },
     nonTemplatePerformance: {
+      type: Array,
+      default: () => []
+    },
+    stepPerformance: {
       type: Array,
       default: () => []
     },
@@ -84,6 +103,25 @@ export default {
 
 .performance-details-content {
   min-height: 200px;
+}
+
+.query-performance {
+  margin-bottom: 20px;
+}
+
+.step-performance {
+  margin-top: 0;
+}
+
+/* 子卡片样式优化 */
+:deep(.step-performance .el-card) {
+  box-shadow: none;
+  border: 1px solid #ebeef5;
+  background-color: #fafafa;
+}
+
+:deep(.step-performance .el-card__body) {
+  padding: 15px;
 }
 </style>
 
