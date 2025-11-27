@@ -27,7 +27,9 @@
       </el-card>
     </div>
 
-    <!-- 综合统计分析 -->
+    <!-- ==================== 天级明细数据区域 ==================== -->
+    
+    <!-- 1. 总体明细数据 -->
     <el-row class="comprehensive-stats">
       <el-col :span="24">
         <ComprehensiveStatsCard 
@@ -37,7 +39,7 @@
       </el-col>
     </el-row>
 
-    <!-- 错误明细数据 -->
+    <!-- 2. 错误明细数据 -->
     <el-row class="error-details-section">
       <el-col :span="24">
         <ErrorDetailsCard
@@ -48,7 +50,8 @@
       </el-col>
     </el-row>
 
-    <!-- 耗时明细数据 -->
+    <!-- 3. 性能明细数据 -->
+    <!-- 3.1 查询耗时明细数据 -->
     <el-row class="performance-details-section">
       <el-col :span="24">
         <PerformanceDetailsCard
@@ -60,28 +63,28 @@
       </el-col>
     </el-row>
 
-    <!-- 步骤性能分析 -->
+    <!-- 3.2 环节耗时明细数据 -->
     <el-row class="step-performance">
       <el-col :span="24">
         <StepPerformanceCard 
-          title="各环节耗时统计" 
+          title="环节耗时明细数据" 
           :steps="stepPerformance" 
           :loading="loading"
         />
       </el-col>
     </el-row>
 
-    <!-- 渠道、场景、免提单统计 -->
+    <!-- 4. 业务明细数据 -->
     <el-row :gutter="20" class="channel-scenario-stats">
       <el-col :span="12">
         <div class="left-column">
           <ChannelStatsCard 
-            title="渠道查询统计" 
+            title="渠道明细数据" 
             :channel-data="channelStats" 
             :loading="loading"
           />
           <NoTicketStatsCard 
-            title="免提单统计" 
+            title="免提单明细数据" 
             :stats="noTicketStats" 
             :loading="loading"
           />
@@ -89,14 +92,14 @@
       </el-col>
       <el-col :span="12">
         <ScenarioStatsCard 
-          title="场景查询统计" 
+          title="场景明细数据" 
           :scenarios="scenarioStats" 
           :loading="loading"
         />
       </el-col>
     </el-row>
 
-    <!-- 用户统计 -->
+    <!-- 5. 用户明细数据 -->
     <el-row class="user-stats">
       <el-col :span="24">
         <UserStatsCard 
@@ -108,7 +111,9 @@
       </el-col>
     </el-row>
 
-    <!-- 趋势图表 -->
+    <!-- ==================== 趋势数据分析区域 ==================== -->
+    
+    <!-- 6. 趋势数据分析 -->
     <el-row class="weekly-trends">
       <el-col :span="24">
         <WeeklyTrendCards 

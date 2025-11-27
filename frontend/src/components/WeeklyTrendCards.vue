@@ -1,6 +1,6 @@
 <template>
   <div class="weekly-trends">
-    <!-- 趋势数据查询控制面板 -->
+    <!-- 趋势数据分析控制面板 -->
     <el-row :gutter="20" class="trend-controls">
       <el-col :span="24">
         <el-card>
@@ -8,7 +8,7 @@
             <div class="card-header">
               <span class="card-title">
                 <el-icon><Calendar /></el-icon>
-                趋势数据查询
+                趋势数据分析
               </span>
             </div>
           </template>

@@ -4,7 +4,7 @@
       <div class="card-header">
         <span class="card-title">
           <el-icon><DataAnalysis /></el-icon>
-          综合查询统计分析
+          总体明细数据
         </span>
       </div>
     </template>
