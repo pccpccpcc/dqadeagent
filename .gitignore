@@ -40,3 +40,5 @@ tmp/
 temp/
 *.tmp
 
+# 忽略package-lock备份文件
+package-lock*.json
