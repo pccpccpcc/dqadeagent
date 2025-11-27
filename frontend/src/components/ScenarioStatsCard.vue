@@ -1,8 +1,8 @@
 <template>
   <el-card>
     <template #header v-if="showHeader">
-      <div class="card-header">
-        <span class="card-title">
+      <div class="card-header-level-2">
+        <span class="card-title-level-2">
           <el-icon><Grid /></el-icon>
           {{ title }}
         </span>
@@ -87,18 +87,7 @@ export default {
 </script>
 
 <style scoped>
-.card-header {
-  display: flex;
-  align-items: center;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 16px;
-}
+@import '@/styles/card-header.css';
 
 .scenario-content {
   min-height: 200px;

@@ -1,8 +1,8 @@
 <template>
   <el-card class="performance-details-card">
     <template #header>
-      <div class="card-header">
-        <span class="card-title">
+      <div class="card-header-level-1">
+        <span class="card-title-level-1">
           <el-icon><Timer /></el-icon>
           耗时明细数据
         </span>
@@ -82,22 +82,10 @@ export default {
 </script>
 
 <style scoped>
+@import '@/styles/card-header.css';
+
 .performance-details-card {
   margin-top: 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 18px;
 }
 
 .performance-details-content {

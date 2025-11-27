@@ -1,0 +1,74 @@
+/* 
+ * 卡片标题统一样式
+ * 层级1：大卡片标题（18px, 粗体）
+ * 层级2：子卡片标题（16px, 中等粗细）
+ * 层级3：小标题（14px, 正常）
+ */
+
+/* 层级1：大卡片标题 */
+.card-header-level-1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title-level-1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 18px;
+  color: #303133;
+}
+
+.card-title-level-1 .el-icon {
+  font-size: 20px;
+}
+
+/* 层级2：子卡片标题 */
+.card-header-level-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title-level-2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  color: #606266;
+}
+
+.card-title-level-2 .el-icon {
+  font-size: 18px;
+}
+
+/* 层级3：小标题 */
+.card-header-level-3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title-level-3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #909399;
+}
+
+.card-title-level-3 .el-icon {
+  font-size: 16px;
+}
+
+/* 统一的header-extra样式 */
+.header-extra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+

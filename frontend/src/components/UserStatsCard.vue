@@ -1,8 +1,8 @@
 <template>
   <el-card>
     <template #header>
-      <div class="card-header">
-        <span class="card-title">
+      <div class="card-header-level-1">
+        <span class="card-title-level-1">
           <el-icon><User /></el-icon>
           用户明细数据
         </span>
@@ -317,25 +317,7 @@ export default {
 </script>
 
 <style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 16px;
-}
-
-.header-extra {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+@import '@/styles/card-header.css';
 
 .user-content {
   min-height: 400px;

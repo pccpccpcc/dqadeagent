@@ -5,8 +5,8 @@
       <el-col :span="24">
         <el-card>
           <template #header>
-            <div class="card-header">
-              <span class="card-title">
+            <div class="card-header-level-1">
+              <span class="card-title-level-1">
                 <el-icon><Calendar /></el-icon>
                 趋势数据分析
               </span>
@@ -59,8 +59,8 @@
       <el-col :span="24">
         <el-card>
           <template #header>
-            <div class="card-header">
-              <span class="card-title">
+            <div class="card-header-level-2">
+              <span class="card-title-level-2">
                 <el-icon><TrendCharts /></el-icon>
                 {{ getTrendTitle('查询总数趋势') }}
               </span>
@@ -89,8 +89,8 @@
       <el-col :span="24">
         <el-card>
           <template #header>
-            <div class="card-header">
-              <span class="card-title">
+            <div class="card-header-level-2">
+              <span class="card-title-level-2">
                 <el-icon><Operation /></el-icon>
                 {{ getTrendTitle('各环节耗时趋势') }}
               </span>
@@ -119,8 +119,8 @@
       <el-col :span="24">
         <el-card>
           <template #header>
-            <div class="card-header">
-              <span class="card-title">
+            <div class="card-header-level-2">
+              <span class="card-title-level-2">
                 <el-icon><Share /></el-icon>
                 {{ getTrendTitle('各渠道查询趋势') }}
               </span>
@@ -551,26 +551,14 @@ export default {
 </script>
 
 <style scoped>
+@import '@/styles/card-header.css';
+
 .weekly-trends {
   padding: 0;
 }
 
 .trend-row {
   margin-bottom: 20px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 16px;
 }
 
 .header-controls {

@@ -1,8 +1,8 @@
 <template>
   <el-card>
     <template #header>
-      <div class="card-header">
-        <span class="card-title">
+      <div class="card-header-level-1">
+        <span class="card-title-level-1">
           <el-icon><DataAnalysis /></el-icon>
           总体明细数据
         </span>
@@ -210,18 +210,7 @@ export default {
 </script>
 
 <style scoped>
-.card-header {
-  display: flex;
-  align-items: center;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 18px;
-}
+@import '@/styles/card-header.css';
 
 .stats-content {
   min-height: 300px;

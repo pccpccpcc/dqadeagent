@@ -1,8 +1,8 @@
 <template>
   <el-card>
     <template #header>
-      <div class="card-header">
-        <span class="card-title">
+      <div class="card-header-level-1">
+        <span class="card-title-level-1">
           <el-icon><Grid /></el-icon>
           业务明细数据
         </span>
@@ -83,19 +83,7 @@ export default {
 </script>
 
 <style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 16px;
-}
+@import '@/styles/card-header.css';
 
 .business-content {
   min-height: 200px;
