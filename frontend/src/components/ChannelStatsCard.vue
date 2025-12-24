@@ -46,6 +46,13 @@
               </el-tag>
             </template>
           </el-table-column>
+          <el-table-column label="占比" width="100" align="center">
+            <template #default="{ row }">
+              <span class="percentage-text">
+                {{ formatPercentage(row.percentage) }}
+              </span>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -109,8 +116,8 @@ export default {
         nonMemberMap[item.channel] = item.count
       })
 
-      // 按固定顺序生成表格数据
-      return channelOrder.map(ch => {
+      // 按固定顺序生成基础表格数据
+      const rows = channelOrder.map(ch => {
         const memberCount = memberMap[ch.channel] || 0
         const nonMemberCount = nonMemberMap[ch.channel] || 0
         const totalCount = memberCount + nonMemberCount
@@ -123,10 +130,42 @@ export default {
           non_member_count: nonMemberCount
         }
       })
+
+      const grandTotal = rows.reduce((sum, row) => sum + row.total_count, 0)
+      const totalMember = rows.reduce((sum, row) => sum + row.member_count, 0)
+      const totalNonMember = rows.reduce((sum, row) => sum + row.non_member_count, 0)
+
+      const rowsWithPercentage = rows.map(row => ({
+        ...row,
+        percentage: grandTotal ? (row.total_count / grandTotal) * 100 : 0
+      }))
+
+      const totalRow = {
+        channel: 'TOTAL',
+        channel_name: '合计',
+        total_count: grandTotal,
+        member_count: totalMember,
+        non_member_count: totalNonMember,
+        percentage: grandTotal ? 100 : 0
+      }
+
+      // 合计行在最上方
+      return [totalRow, ...rowsWithPercentage]
     })
 
+    const formatPercentage = (value) => {
+      if (!Number.isFinite(value)) {
+        return '-'
+      }
+      if (value === 0) {
+        return '0%'
+      }
+      return `${value.toFixed(1)}%`
+    }
+
     return {
-      tableData
+      tableData,
+      formatPercentage
     }
   }
 }
@@ -151,6 +190,11 @@ export default {
   font-size: 14px;
   font-weight: bold;
   padding: 4px 12px;
+}
+
+.percentage-text {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 :deep(.el-table) {

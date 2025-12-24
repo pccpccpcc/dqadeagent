@@ -474,6 +474,16 @@ export default {
         countField = 'non_member_count'
       }
       
+      // 计算每天的合计数量（所有渠道求和）
+      const totalSeriesData = dates.map(date => {
+        return channelTrendData.value
+          .filter(item => item.date === date)
+          .reduce((sum, item) => {
+            const value = item[countField] ?? 0
+            return sum + (Number.isFinite(value) ? value : 0)
+          }, 0)
+      })
+      
       return {
         title: {
           text: titleText,
@@ -513,16 +523,29 @@ export default {
           type: 'value',
           name: '查询数量'
         },
-        series: channels.map((channelName, index) => ({
-          name: channelName,
-          type: 'line',
-          data: dates.map(date => {
-            const item = channelTrendData.value.find(d => d.date === date && d.channel_name === channelName)
-            return item ? item[countField] : 0
-          }),
-          itemStyle: { color: colors[index % colors.length] },
-          smooth: true
-        }))
+        series: [
+          // 每日总量合计
+          {
+            name: '合计',
+            type: 'line',
+            data: totalSeriesData,
+            itemStyle: { color: '#000000' },
+            lineStyle: { width: 3 },
+            smooth: true
+          },
+          // 各渠道明细
+          ...channels.map((channelName, index) => ({
+            name: channelName,
+            type: 'line',
+            data: dates.map(date => {
+              const item = channelTrendData.value.find(d => d.date === date && d.channel_name === channelName)
+              const value = item ? item[countField] : 0
+              return Number.isFinite(value) ? value : 0
+            }),
+            itemStyle: { color: colors[index % colors.length] },
+            smooth: true
+          }))
+        ]
       }
     })
 

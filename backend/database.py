@@ -1560,24 +1560,42 @@ class DatabaseManager:
             raise e
     
     def get_ds_error_details(self, queryDate: str) -> Dict[str, Any]:
-        """获取DS子系统错误明细数据"""
+        """
+        获取DS子系统错误明细数据
+        
+        DS子系统错误判断规则：
+        1. result_code是8位，前4位是"2030"，后4位不是"0000" -> DS子系统错误
+        2. result_code不是8位 -> 也是DS子系统错误（系统错误）
+        
+        业务错误vs系统错误：
+        - 后4位在business_error_codes中 -> 业务错误
+        - 否则 -> 系统错误（统一为"其他错误"）
+        """
         try:
             next_date = datetime.strptime(queryDate, '%Y-%m-%d') + timedelta(days=1)
             
-            # 获取所有DS错误记录
+            # 获取所有可能的DS错误记录
+            # 条件：result_code前4位是2030，且后4位不是0000
+            # 或者result_code不是8位（异常情况）
             sql = """
                 SELECT biz_seq, result_code, req_info, rsp_info, create_time
                 FROM t_handler_logs 
                 WHERE create_time >= %s AND create_time < %s
-                AND result_code NOT LIKE '%%0000' 
-                AND result_code LIKE 'B2DS%%'
+                AND (
+                    (LENGTH(result_code) = 8 AND LEFT(result_code, 4) = '2030' AND RIGHT(result_code, 4) != '0000')
+                    OR (LENGTH(result_code) != 8 AND result_code IS NOT NULL AND result_code != '')
+                )
                 ORDER BY create_time DESC
             """
             
             results = self.execute_query(sql, (queryDate, next_date.strftime('%Y-%m-%d')))
             
-            # DS的业务错误码映射（与Agent相同）
+            # DS的业务错误码映射
             business_error_codes = {
+                '0001': '参数错误',
+                '0101': '请求aomp异常',
+                '0103': '验签失败',
+                '1001': '查询元数据信息异常',
                 '1002': '用户没有对应子系统权限',
                 '1003': 'dbName输入错误',
                 '1004': 'DCN信息为空，请排查子系统是否接入AOMP',
@@ -1586,11 +1604,7 @@ class DatabaseManager:
                 '1008': '查询出的IDC信息为空，请排查子系统是否接入AOMP',
                 '1009': 'IDC输入错误',
                 '2001': '提交SQL执行异常',
-                '2002': '解析sql中的表名发送异常'
-            }
-            
-            # DS的系统错误码映射
-            system_error_codes = {
+                '2002': '解析sql中的表名发送异常',
                 '3001': 'AOMP返回结果为空',
                 '3002': 'SQL执行超时'
             }
@@ -1601,54 +1615,55 @@ class DatabaseManager:
             
             for record in results:
                 result_code = record.get('result_code', '')
-                if len(result_code) >= 7:
-                    error_type = result_code[6]  # 第7位（索引6）
-                    last_four = result_code[-4:]  # 后四位
+                
+                error_data = {
+                    'biz_seq': record.get('biz_seq'),
+                    'result_code': result_code,
+                    'req_info': record.get('req_info'),
+                    'rsp_info': record.get('rsp_info'),
+                    'create_time': record.get('create_time').strftime('%Y-%m-%d %H:%M:%S') if record.get('create_time') else None
+                }
+                
+                # 判断是业务错误还是系统错误
+                if len(result_code) == 8:
+                    # 8位result_code，取后4位判断
+                    last_four = result_code[-4:]
                     
-                    error_data = {
-                        'biz_seq': record.get('biz_seq'),
-                        'result_code': result_code,
-                        'req_info': record.get('req_info'),
-                        'rsp_info': record.get('rsp_info'),
-                        'create_time': record.get('create_time').strftime('%Y-%m-%d %H:%M:%S') if record.get('create_time') else None
-                    }
-                    
-                    # 判断是业务错误还是系统错误
-                    if error_type in ['1', '2']:
-                        # 业务错误 - 直接按后四位分组
+                    if last_four in business_error_codes:
+                        # 业务错误 - 按后四位分组
                         if last_four not in business_errors:
                             business_errors[last_four] = {
                                 'code': last_four,
-                                'code_name': business_error_codes.get(last_four, f'未知错误码{last_four}'),
+                                'code_name': business_error_codes[last_four],
                                 'count': 0,
                                 'details': []
                             }
-                        
                         business_errors[last_four]['count'] += 1
                         business_errors[last_four]['details'].append(error_data)
                     else:
-                        # 系统错误 - 直接按后四位分组
-                        # 如果不是3001和3002，也不在业务错误码里面，归类为"其他"
-                        if last_four in system_error_codes:
-                            code_key = last_four
-                            code_name = system_error_codes[last_four]
-                        elif last_four not in business_error_codes:
-                            code_key = '9999'  # 其他
-                            code_name = '其他'
-                        else:
-                            code_key = last_four
-                            code_name = f'错误码{last_four}'
-                        
+                        # 系统错误 - 统一为"其他错误"
+                        code_key = '9999'
                         if code_key not in system_errors:
                             system_errors[code_key] = {
                                 'code': code_key,
-                                'code_name': code_name,
+                                'code_name': '其他错误',
                                 'count': 0,
                                 'details': []
                             }
-                        
                         system_errors[code_key]['count'] += 1
                         system_errors[code_key]['details'].append(error_data)
+                else:
+                    # 非8位result_code，也是系统错误，统一为"其他错误"
+                    code_key = '9999'
+                    if code_key not in system_errors:
+                        system_errors[code_key] = {
+                            'code': code_key,
+                            'code_name': '其他错误',
+                            'count': 0,
+                            'details': []
+                        }
+                    system_errors[code_key]['count'] += 1
+                    system_errors[code_key]['details'].append(error_data)
             
             # 转换为列表格式并排序
             business_error_list = sorted(
